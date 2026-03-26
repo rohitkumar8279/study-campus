@@ -1,6 +1,6 @@
 
 // Import required models
-const Course = require("../models/Course");
+const Course = require("../models/course");
 const Tag = require("../models/tags");
 const User = require("../models/User");
 
@@ -170,6 +170,58 @@ exports.showAllCourses = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: error.message,
+    });
+  }
+};
+
+
+// getCourseDetails
+exports.getCourseDetails = async (req, res) => {
+  try {
+    // get courseId from request body
+    const { courseId } = req.body;
+
+    // validation
+    if (!courseId) {
+      return res.status(400).json({
+        success: false,
+        message: "Course ID is required",
+      });
+    }
+
+    // find course and populate related fields
+    const courseDetails = await Course.findById(courseId)
+      .populate("instructor")
+      .populate("ratingAndreviews")
+      .populate({
+        path: "courseContent",
+        populate: {
+          path: "subSection",
+        },
+      })
+      .exec();
+
+    // if course not found
+    if (!courseDetails) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    // success response
+    return res.status(200).json({
+      success: true,
+      data: courseDetails,
+      message: "Course details fetched successfully",
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
     });
   }
 };

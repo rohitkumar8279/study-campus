@@ -51,11 +51,14 @@ const courseSchema = new mongoose.Schema({
     type: [String],
     ref: "Tag",
   },
+  staus :{
+  type:String,
+  enum:["Draft","published"],
+},
   studentsEnrolled:[{
     type:mongoose.Schema.Types.ObjectId,
     require:true,
     ref:"user",
   }]
 });
-
 module.exports = mongoose.model("Course", courseSchema);
