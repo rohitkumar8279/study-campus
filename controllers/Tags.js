@@ -1,16 +1,13 @@
 
-// Import Tag model
-const Tag = require("../models/tags");
+const Tag = require("../models/tags"); // ✅ make sure file name matches exactly
 
-// ===============================
-// CREATE TAG CONTROLLER
-// ===============================
+
+// ================= CREATE TAG =================
 exports.createTag = async (req, res) => {
   try {
-    // Fetch data from request body
     const { name, description } = req.body;
 
-    // Validation
+    // validation
     if (!name || !description) {
       return res.status(400).json({
         success: false,
@@ -18,38 +15,33 @@ exports.createTag = async (req, res) => {
       });
     }
 
-    // Create entry in DB
+    // create tag
     const tagDetails = await Tag.create({
-      name: name,
-      description: description,
+      name,
+      description,
     });
 
-    // Log created tag (for debugging)
-    console.log(tagDetails);
-
-    // Return success response
     return res.status(200).json({
       success: true,
-      message: "Tag Created Successfully",
+      message: "Tag created successfully",
       data: tagDetails,
     });
 
   } catch (error) {
-    // Handle error
+    console.error("Create Tag Error:", error);
     return res.status(500).json({
       success: false,
       message: error.message,
     });
   }
 };
-// ===============================
-// GET ALL TAGS CONTROLLER
-// ===============================
-exports.showAlltags = async (req, res) => {
+
+
+// ================= GET ALL TAGS =================
+exports.showAllTags = async (req, res) => {
   try {
-    // Fetch all tags (only name & description fields)
-    const allTags = await Tag.find({}, { name: true, description: true });
-    // Return response
+    const allTags = await Tag.find({}, { name: 1, description: 1 });
+
     return res.status(200).json({
       success: true,
       message: "All tags fetched successfully",
@@ -57,7 +49,7 @@ exports.showAlltags = async (req, res) => {
     });
 
   } catch (error) {
-    // Handle error
+    console.error("Fetch Tags Error:", error);
     return res.status(500).json({
       success: false,
       message: error.message,

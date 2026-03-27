@@ -1,104 +1,111 @@
 
 const jwt = require("jsonwebtoken");
+const User = require("../models/user"); // ✅ fixed lowercase
 require("dotenv").config();
-const User = require("../models/User");
 
-// =========================
-//  AUTH MIDDLEWARE
-// =========================
+
+// ================= AUTH MIDDLEWARE =================
 exports.auth = async (req, res, next) => {
   try {
-    // extract token
+    // safe token extraction
     const token =
-      req.cookies.token ||
-      req.body.token ||
-      req.header("Authorization")?.replace("Bearer ", "");
+      req.cookies?.token ||
+      req.body?.token ||
+      (req.header("Authorization") &&
+        req.header("Authorization").replace("Bearer ", ""));
 
-    // if token missing
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: "Token is missing",
+        message: "Token missing",
       });
     }
 
-    // verify token
     try {
-      const decode = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = decode;
-    } catch (err) {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = decoded;
+    } catch (error) {
       return res.status(401).json({
         success: false,
-        message: "Token is invalid",
+        message: "Invalid token",
       });
     }
 
     next();
+
   } catch (error) {
-    console.error("Auth Middleware Error:", error);
-    return res.status(401).json({
+    return res.status(500).json({
       success: false,
-      message: "Something went wrong while validating token",
+      message: "Error validating token",
     });
   }
 };
 
-// =========================
-//  isStudent
-// =========================
+
+// ================= STUDENT =================
 exports.isStudent = async (req, res, next) => {
   try {
-    if (req.user.accountType !== "Student") {
-      return res.status(401).json({
+    const user = await User.findOne({ email: req.user.email });
+
+    if (!user || user.accountType !== "Student") {
+      return res.status(403).json({
         success: false,
-        message: "This is a protected route for Students only",
+        message: "Only Students can access this route",
       });
     }
+
     next();
+
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: "User role cannot be verified",
+      message: "Role verification failed",
     });
   }
 };
 
-// =========================
-//  isInstructor
-// =========================
-exports.isInstructor = async (req, res, next) => {
-  try {
-    if (req.user.accountType !== "Instructor") {
-      return res.status(401).json({
-        success: false,
-        message: "This is a protected route for Instructors only",
-      });
-    }
-    next();
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: "User role cannot be verified",
-    });
-  }
-};
 
-// =========================
-//  isAdmin
-// =========================
+// ================= ADMIN =================
 exports.isAdmin = async (req, res, next) => {
   try {
-    if (req.user.accountType !== "Admin") {
-      return res.status(401).json({
+    const user = await User.findOne({ email: req.user.email });
+
+    if (!user || user.accountType !== "Admin") {
+      return res.status(403).json({
         success: false,
-        message: "This is a protected route for Admin only",
+        message: "Only Admin can access this route",
       });
     }
+
     next();
+
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: "User role cannot be verified",
+      message: "Role verification failed",
+    });
+  }
+};
+
+
+// ================= INSTRUCTOR =================
+exports.isInstructor = async (req, res, next) => {
+  try {
+    const user = await User.findOne({ email: req.user.email });
+
+    if (!user || user.accountType !== "Instructor") {
+      return res.status(403).json({
+        success: false,
+        message: "Only Instructor can access this route",
+      });
+    }
+
+    next();
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Role verification failed",
     });
   }
 };

@@ -1,55 +1,59 @@
 
-const mongoose = require("mongoose");
 
+const mongoose = require("mongoose");
+const mailSender = require("../utils/mailSender");
+const emailTemplate = require("../mail/templates/emailVerificationTemplate");
+
+
+// ================= OTP SCHEMA =================
 const OTPSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
   },
-
   otp: {
     type: String,
     required: true,
   },
-
   createdAt: {
     type: Date,
-    default: Date.now(),
-    expires: 5 * 60,
+    default: Date.now,
+    expires: 60 * 5, // ✅ auto delete after 5 min
   },
 });
 
-const mailSender = require("../utils/mailsender")
 
-// function to send verification email
-async function sendVerificationEmail(email, otp) {
+// ================= SEND EMAIL FUNCTION =================
+const sendVerificationEmail = async (email, otp) => {
   try {
     const mailResponse = await mailSender(
       email,
-      "Verification Email - SmartCampus",
-      `
-        <h2>Hello User,</h2>
-        <p>Your OTP for SmartCampus verification is:</p>
-        <h1 style="color:#4CAF50;">${otp}</h1>
-        <p>This OTP is valid for 5 minutes.</p>
-        <br/>
-        <p>Thanks,<br/>SmartCampus Team (by Rohit)</p>
-      `
+      "Verification Email",
+      emailTemplate(otp)
     );
 
-    console.log("Email sent successfully:", mailResponse);
+    console.log("OTP Email sent:", mailResponse?.response);
+
   } catch (error) {
-    console.log("Error occurred while sending mail:", error.message);
+    console.error("OTP Email Error:", error);
     throw error;
   }
-}
+};
 
-// PRE middleware → send email before saving
+
+// ================= PRE-SAVE HOOK =================
 OTPSchema.pre("save", async function (next) {
-  await sendVerificationEmail(this.email, this.otp);
-  next();
+  try {
+    if (this.isNew) {
+      await sendVerificationEmail(this.email, this.otp);
+    }
+    next();
+  } catch (error) {
+    next(error); // ✅ important fix
+  }
 });
 
 
-
-module.exports = mongoose.model("OTP", OTPSchema);
+// ================= EXPORT MODEL =================
+module.exports =
+  mongoose.models.OTP || mongoose.model("OTP", OTPSchema);

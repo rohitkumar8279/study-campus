@@ -30,6 +30,14 @@ const userSchema = new mongoose.Schema({
     enum: ["Admin", "Student", "Instructor"],
     required: true,
   },
+   active: {
+			type: Boolean,
+			default: true,
+		},
+		approved: {
+			type: Boolean,
+			default: true,
+		},
 
   additionalDetails: {
     type: mongoose.Schema.Types.ObjectId,
@@ -52,7 +60,7 @@ const userSchema = new mongoose.Schema({
     types:String,
   },
   resetPasswordExpires:{
-    type:Data,
+    type:Date,
   },
   courseProgress: [
     {
