@@ -2,7 +2,6 @@
 const express = require("express");
 const router = express.Router();
 
-// ✅ FIXED lowercase (VERY IMPORTANT)
 const {
   login,
   signup,

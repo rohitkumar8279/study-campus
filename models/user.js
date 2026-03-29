@@ -51,11 +51,11 @@ const userSchema = new mongoose.Schema({
       ref: "Course",
     },
   ],
-
+  
   image: {
-    type: String,
-    required: true,
-  },
+  type: String,
+  default: "https://api.dicebear.com/5.x/initials/svg?seed=Rohit",
+},
   token :{
     types:String,
   },

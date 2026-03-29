@@ -40,10 +40,13 @@ exports.updateProfile = async (req, res) => {
     const updatedUser = await User.findById(userId)
       .populate("additionalDetails");
 
+    const userData = updatedUser.toObject();
+    delete userData.password;
+
     return res.status(200).json({
       success: true,
       message: "Profile updated successfully",
-      data: updatedUser,
+      data: userData,
     });
 
   } catch (error) {
@@ -137,11 +140,12 @@ exports.updateDisplayPicture = async (req, res) => {
       { image: image.secure_url },
       { new: true }
     );
-
+      const userData = updatedUser.toObject();
+      delete userData.password;
     return res.status(200).json({
       success: true,
       message: "Image updated successfully",
-      data: updatedUser,
+      data: userData,
     });
 
   } catch (error) {

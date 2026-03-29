@@ -42,17 +42,11 @@ const sendVerificationEmail = async (email, otp) => {
 
 
 // ================= PRE-SAVE HOOK =================
-OTPSchema.pre("save", async function (next) {
-  try {
-    if (this.isNew) {
-      await sendVerificationEmail(this.email, this.otp);
-    }
-    next();
-  } catch (error) {
-    next(error); // ✅ important fix
+OTPSchema.pre("save", async function () {
+  if (this.isNew) {
+    await sendVerificationEmail(this.email, this.otp);
   }
 });
-
 
 // ================= EXPORT MODEL =================
 module.exports =
